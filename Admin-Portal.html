@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal Prototype</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Thêm ionicons (cho các biểu tượng) -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Ẩn tất cả các trang nội dung theo mặc định */
+        .page-content {
+            display: none;
+        }
+        /* Hiển thị trang đang hoạt động */
+        .page-content.active {
+            display: block;
+        }
+        /* Kiểu cho link điều hướng đang hoạt động */
+        .nav-link.active {
+            background-color: #4f46e5; /* Màu indigo-600 */
+            color: #ffffff;
+        }
+        /* Kiểu cho Modal (Popup) */
+        .modal {
+            display: none; /* Ẩn theo mặc định */
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); /* Nền mờ */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 24px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- Sidebar (Menu điều hướng) -->
+        <aside class="w-64 bg-gray-900 text-gray-300 flex flex-col fixed h-full">
+            <div class="flex items-center justify-center h-20 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-white">Admin Portal</h1>
+            </div>
+            <nav class="flex-1 mt-6">
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-dashboard">
+                    <ion-icon name="grid-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-user-management">
+                    <ion-icon name="people-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    User Management
+                </a>
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-course-catalog">
+                    <ion-icon name="book-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    Course Catalog
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex items-center">
+                    <img class="w-10 h-10 rounded-full" src="https://placehold.co/100x100/F9E8FF/A855F7?text=AD" alt="Avatar Admin">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-white">Admin User</p>
+                        <p class="text-xs text-gray-400">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area (Khu vực nội dung chính) -->
+        <main class="flex-1 ml-64 p-8 overflow-y-auto">
+            
+            <!-- === 1. Trang Dashboard (Màn hình chính) === -->
+            <div id="page-dashboard" class="page-content active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome, Admin!</h2>
+
+                <!-- Quick Actions -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h3>
+                    <div class="flex space-x-4">
+                        <button id="btn-open-add-user-modal" class="flex items-center bg-indigo-600 text-white px-5 py-3 rounded-lg shadow-md hover:bg-indigo-700 transition-all">
+                            <ion-icon name="person-add-outline" class="w-5 h-5 mr-2"></ion-icon>
+                            Add New User
+                        </button>
+                        <button data-goto-page="page-course-catalog" class="flex items-center bg-green-600 text-white px-5 py-3 rounded-lg shadow-md hover:bg-green-700 transition-all">
+                            <ion-icon name="add-outline" class="w-5 h-5 mr-2"></ion-icon>
+                            Create New Course
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lưới widget -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Active Teachers -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Active Teachers (Last 24h)</h3>
+                        <ul class="space-y-3 h-96 overflow-y-auto">
+                            <!-- Sample 15 teachers (Updated to English) -->
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Alex Johnson</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Prof. Bella Smith</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Chris Lee</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Assoc. Prof. Dana White</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Evan Brown</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Prof. Fiona Davis</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. George Miller</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Hannah Wilson</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Prof. Ian Moore</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Jessica Taylor</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Kevin Anderson</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Prof. Laura Thomas</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Michael Jackson</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Assoc. Prof. Nina Martin</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Dr. Oscar Harris</li>
+                        </ul>
+                    </div>
+
+                    <!-- Active Students -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Active Students (Last 24h)</h3>
+                        <ul class="space-y-3 h-96 overflow-y-auto">
+                            <!-- Sample 15 students (Updated to English) -->
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Leo Williams</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Anna Brown</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Tom Clark</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Peter Hall</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Vicky Green</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Daniel Allen</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Brian Young</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Harry King</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Nancy Wright</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Oliver Scott</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Lily Adams</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">David Baker</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Mary Nelson</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Zoe Carter</li>
+                            <li class="flex items-center p-2 rounded-lg hover:bg-gray-50">Jack Roberts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 2. Trang User Management === -->
+            <div id="page-user-management" class="page-content">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">User Management</h2>
+                
+                <!-- Buttons -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button id="btn-open-add-user-modal-2" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700">
+                        <ion-icon name="add-outline" class="w-5 h-5 mr-2"></ion-icon> Add New User
+                    </button>
+                    <button class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700">
+                        <ion-icon name="cloud-upload-outline" class="w-5 h-5 mr-2"></ion-icon> Bulk Upload (CSV)
+                    </button>
+                    <button class="flex items-center bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50">
+                        <ion-icon name="cloud-download-outline" class="w-5 h-5 mr-2"></ion-icon> Download Template
+                    </button>
+                </div>
+
+                <!-- Tabs for User Management -->
+                <div class="mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav id="user-tabs" class="flex -mb-px space-x-6" aria-label="Tabs">
+                            <a href="#" data-tab-toggle="students" class="tab-link active border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Students</a>
+                            <a href="#" data-tab-toggle="lecturers" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Lecturers</a>
+                            <a href="#" data-tab-toggle="administrators" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Administrators</a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Tab Content for User Management -->
+                <div id="user-tab-content">
+                    
+                    <!-- Students Tab -->
+                    <div data-tab-target="students" class="tab-content active">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <input type="text" placeholder="Search students..." class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 font-medium">Name</th>
+                                        <th class="p-3 font-medium">Email</th>
+                                        <th class="p-3 font-medium">Role</th>
+                                        <th class="p-3 font-medium">Status</th>
+                                        <th class="p-3 font-medium text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="p-3">Leo Williams</td>
+                                        <td class="p-3">leo.williams@email.com</td>
+                                        <td class="p-3">Student</td>
+                                        <td class="p-3 text-green-600 font-medium">Active</td>
+                                        <td class="p-3 text-right space-x-2">
+                                            <button class="text-sm text-indigo-600 hover:underline">Edit</button>
+                                            <button class="text-sm text-red-600 hover:underline">Deactivate</button>
+                                        </td>
+                                    </tr>
+                                    <!-- more students... -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Lecturers Tab -->
+                    <div data-tab-target="lecturers" class="tab-content hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <input type="text" placeholder="Search lecturers..." class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 font-medium">Name</th>
+                                        <th class="p-3 font-medium">Email</th>
+                                        <th class="p-3 font-medium">Role</th>
+                                        <th class="p-3 font-medium">Status</th>
+                                        <th class="p-3 font-medium text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="p-3">Dr. Alex Johnson</td>
+                                        <td class="p-3">alex.johnson@email.com</td>
+                                        <td class="p-3">Lecturer</td>
+                                        <td class="p-3 text-green-600 font-medium">Active</td>
+                                        <td class="p-3 text-right space-x-2">
+                                            <button class="text-sm text-indigo-600 hover:underline">Edit</button>
+                                            <button class="text-sm text-red-600 hover:underline">Deactivate</button>
+                                        </td>
+                                    </tr>
+                                    <!-- more lecturers... -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Administrators Tab -->
+                    <div data-tab-target="administrators" class="tab-content hidden">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <input type="text" placeholder="Search administrators..." class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 font-medium">Name</th>
+                                        <th class="p-3 font-medium">Email</th>
+                                        <th class="p-3 font-medium">Role</th>
+                                        <th class="p-3 font-medium">Status</th>
+                                        <th class="p-3 font-medium text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="p-3">Admin User</td>
+                                        <td class="p-3">admin@email.com</td>
+                                        <td class="p-3">Administrator</td>
+                                        <td class="p-3 text-green-600 font-medium">Active</td>
+                                        <td class="p-3 text-right space-x-2">
+                                            <button class="text-sm text-indigo-600 hover:underline">Edit</button>
+                                            <button class="text-sm text-gray-400 cursor-not-allowed">Deactivate</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 3. Trang Academic Structure (ĐÃ BỊ XÓA) === -->
+            
+            <!-- === 4. Trang Course Catalog === -->
+            <div id="page-course-catalog" class="page-content">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Course Catalog</h2>
+                
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700">
+                        <ion-icon name="add-outline" class="w-5 h-5 mr-2"></ion-icon> Create New Course
+                    </button>
+                    <button class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700">
+                        <ion-icon name="cloud-upload-outline" class="w-5 h-5 mr-2"></ion-icon> Bulk Upload (CSV)
+                    </button>
+                    <button class="flex items-center bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50">
+                        <ion-icon name="cloud-download-outline" class="w-5 h-5 mr-2"></ion-icon> Download Template
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <input type="text" placeholder="Search courses..." class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-3 font-medium">Course Code</th>
+                                <th class="p-3 font-medium">Course Name</th>
+                                <th class="p-3 font-medium">Department</th>
+                                <th class="p-3 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3">CS101</td>
+                                <td class="p-3">Introduction to Computer Science</td>
+                                <td class="p-3">School of Computing</td>
+                                <td class="p-3 text-right space-x-2">
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Teachers</button>
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Students</button>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3">MATH203</td>
+                                <td class="p-3">Linear Algebra</td>
+                                <td class="p-3">School of Computing</td>
+                                <td class="p-3 text-right space-x-2">
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Teachers</button>
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Students</button>
+                                </td>
+                            </tr>
+                             <tr class="border-b">
+                                <td class="p-3">BUS101</td>
+                                <td class="p-3">Introduction to Management</td>
+                                <td class="p-3">School of Business</td>
+                                <td class="p-3 text-right space-x-2">
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Teachers</button>
+                                    <button class="text-sm text-indigo-600 hover:underline">Assign Students</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- === MODAL 1: Add/Edit User === -->
+    <div id="add-user-modal" class="modal flex">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New User</h3>
+                <span class="modal-close" data-modal-close="add-user-modal">&times;</span>
+            </div>
+            <div class="mt-4">
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            <option>Mr.</option>
+                            <option>Ms.</option>
+                            <option>Dr.</option>
+                            <option>Prof.</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" placeholder="e.g., Leo Williams" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" placeholder="e.g., leo.williams@email.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Assign Role</label>
+                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            <option>Student</option>
+                            <option>Lecturer</option>
+                            <option>Administrator</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Initial Password</label>
+                        <div class="flex items-center mt-1">
+                            <span id="generated-password-display" class="flex-1 p-2 bg-gray-100 rounded-l-md text-gray-700 font-mono">...</span>
+                            <button type="button" id="btn-gen-password" class="bg-gray-200 px-4 py-2 rounded-r-md text-gray-700 hover:bg-gray-300">Generate</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Auto-generated (5 letters, 3 digits, 2 special chars). User will be forced to change on first login.</p>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" class="bg-white border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50" data-modal-close="add-user-modal">Cancel</button>
+                        <button type="button" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Save User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // --- HÀM: Xử lý Modal (Popup) ---
+            function initModals() {
+                const modalOpenButtons = [
+                    document.getElementById('btn-open-add-user-modal'),
+                    document.getElementById('btn-open-add-user-modal-2')
+                ].filter(Boolean); // Lọc ra các nút null
+                
+                const modalCloseButtons = document.querySelectorAll('[data-modal-close]');
+                const modal = document.getElementById('add-user-modal');
+
+                modalOpenButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        if(modal) modal.style.display = 'flex';
+                    });
+                });
+
+                modalCloseButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modalId = button.getAttribute('data-modal-close');
+                        const modalToClose = document.getElementById(modalId);
+                        if(modalToClose) modalToClose.style.display = 'none';
+                    });
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('modal')) {
+                        event.target.style.display = 'none';
+                    }
+                });
+            }
+
+            // --- HÀM: Xử lý các bộ tab (tabsets) nội bộ ---
+            function initTabset(navId, contentWrapperId) {
+                const tabNav = document.getElementById(navId);
+                const tabContentWrapper = document.getElementById(contentWrapperId);
+
+                if (!tabNav || !tabContentWrapper) return;
+
+                const tabLinks = tabNav.querySelectorAll('[data-tab-toggle]');
+                const tabContents = tabContentWrapper.querySelectorAll('[data-tab-target]');
+
+                tabLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetName = this.getAttribute('data-tab-toggle');
+
+                        // Xử lý active link
+                        tabLinks.forEach(l => {
+                            l.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
+                            l.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                        });
+                        this.classList.add('active', 'border-indigo-500', 'text-indigo-600');
+                        this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                        // Xử lý active content
+                        tabContents.forEach(content => {
+                            if (content.getAttribute('data-tab-target') === targetName) {
+                                content.classList.remove('hidden');
+                                content.classList.add('active');
+                            } else {
+                                content.classList.add('hidden');
+                                content.classList.remove('active');
+                            }
+                        });
+                    });
+                });
+            }
+
+            // --- HÀM: Xử lý chuyển trang chính ---
+            function showPage(pageId) {
+                document.querySelectorAll('main > .page-content').forEach(page => {
+                    page.classList.remove('active');
+                    page.style.display = 'none';
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+
+                const pageToShow = document.getElementById(pageId);
+                if (pageToShow) {
+                    pageToShow.classList.add('active');
+                    pageToShow.style.display = 'block';
+                }
+
+                const activeLink = document.querySelector(`.nav-link[data-page="${pageId}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            // Gán sự kiện click cho các link điều hướng (Sidebar)
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    showPage(pageId);
+                });
+            });
+
+            // Gán sự kiện click cho các nút chuyển trang (ví dụ: Create Course)
+            document.querySelectorAll('[data-goto-page]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-goto-page');
+                    showPage(pageId);
+                });
+            });
+            
+            // --- HÀM MỚI: Tạo Mật khẩu ---
+            function generatePassword() {
+                const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const digits = '0123456789';
+                const specials = '!@#$%^&*';
+                
+                let passArray = [];
+
+                for (let i = 0; i < 5; i++) {
+                    passArray.push(letters[Math.floor(Math.random() * letters.length)]);
+                }
+                for (let i = 0; i < 3; i++) {
+                    passArray.push(digits[Math.floor(Math.random() * digits.length)]);
+                }
+                for (let i = 0; i < 2; i++) {
+                    passArray.push(specials[Math.floor(Math.random() * specials.length)]);
+                }
+
+                // Xáo trộn mảng
+                passArray.sort(() => 0.5 - Math.random());
+                
+                return passArray.join('');
+            }
+            
+            function initPasswordGenerator() {
+                const genButton = document.getElementById('btn-gen-password');
+                const display = document.getElementById('generated-password-display');
+                
+                if (genButton && display) {
+                    genButton.addEventListener('click', () => {
+                        display.textContent = generatePassword();
+                    });
+                    // Tạo một mật khẩu ngay khi tải
+                    display.textContent = generatePassword();
+                }
+            }
+
+
+            // --- KHỞI TẠO ---
+            showPage('page-dashboard'); // Hiển thị trang dashboard mặc định
+            initTabset("user-tabs", "user-tab-content"); // Khởi tạo tab cho User Management
+            initModals(); // Khởi tạo các popup
+            initPasswordGenerator(); // Khởi tạo trình tạo mật khẩu
+        });
+    </script>
+
+</body>
+</html>

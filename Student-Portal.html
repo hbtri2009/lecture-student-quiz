@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal Prototype</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Thêm ionicons (cho các biểu tượng) -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Ẩn tất cả các trang nội dung theo mặc định */
+        .page-content {
+            display: none;
+        }
+        /* Hiển thị trang đang hoạt động */
+        .page-content.active {
+            display: block;
+        }
+        /* Kiểu cho link điều hướng đang hoạt động */
+        .nav-link.active {
+            background-color: #4f46e5; /* Màu indigo-600 */
+            color: #ffffff;
+        }
+        /* === ĐÃ XÓA CSS CHO MODAL === */
+        
+        /* Kiểu cho hàng chi tiết bị ẩn */
+        .details-row.hidden {
+            display: none;
+        }
+        
+        /* Kiểu cho biểu đồ tròn (Pie Chart) bằng CSS */
+        @property --p {
+            syntax: '<number>';
+            inherits: true;
+            initial-value: 0;
+        }
+        .pie {
+            --p: 75; /* Percentage */
+            --b: 22px; /* Border thickness */
+            --c: #4f46e5; /* Color */
+            --w: 150px; /* Width */
+            width: var(--w);
+            aspect-ratio: 1;
+            position: relative;
+            display: inline-grid;
+            place-content: center;
+            font-size: 25px;
+            font-weight: bold;
+            font-family: 'Inter', sans-serif;
+            margin: 0 auto;
+            transition: --p 1s;
+        }
+        .pie:before,
+        .pie:after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+        }
+        .pie:before {
+            inset: 0;
+            background:
+                radial-gradient(farthest-side, var(--c) 98%, #0000) top/var(--b) var(--b) no-repeat,
+                conic-gradient(var(--c) calc(var(--p) * 1%), #e5e7eb 0); /* #e5e7eb = gray-200 */
+            -webkit-mask: radial-gradient(farthest-side, #0000 calc(99% - var(--b)), #000 calc(100% - var(--b)));
+            mask: radial-gradient(farthest-side, #0000 calc(99% - var(--b)), #000 calc(100% - var(--b)));
+        }
+        .pie:after {
+            inset: calc(50% - var(--b) / 2);
+            background: var(--c);
+            transform: rotate(calc(var(--p) * 3.6deg)) translateY(calc(50% - var(--w) / 2));
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- Sidebar (Menu điều hướng) -->
+        <aside class="w-64 bg-gray-900 text-gray-300 flex flex-col fixed h-full">
+            <div class="flex items-center justify-center h-20 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-white">Student Portal</h1>
+            </div>
+            <nav class="flex-1 mt-6">
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-dashboard">
+                    <ion-icon name="grid-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-progress">
+                    <ion-icon name="analytics-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    My Progress
+                </a>
+                <!-- === ĐÃ CẬP NHẬT: Knowledge Graph -> Recommendation === -->
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-recommendation">
+                    <ion-icon name="bulb-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    Recommendation
+                </a>
+                <!-- ============================================== -->
+                <!-- === MỤC MENU MỚI ĐƯỢC THÊM === -->
+                <a href="#" class="nav-link flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700" data-page="page-ai-companion">
+                    <ion-icon name="chatbubble-ellipses-outline" class="w-5 h-5 mr-3"></ion-icon>
+                    AI Companion
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex items-center">
+                    <img class="w-10 h-10 rounded-full" src="https://placehold.co/100x100/EBF4FF/76A9FA?text=SV" alt="Avatar Sinh viên">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-white">Lê Văn Hùng</p>
+                        <p class="text-xs text-gray-400">Student</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area (Khu vực nội dung chính) -->
+        <main class="flex-1 ml-64 p-8 overflow-y-auto">
+            
+            <!-- === 1. Trang Dashboard (Màn hình chính) === -->
+            <div id="page-dashboard" class="page-content active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome back, Lê Văn Hùng!</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- My Courses -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">My Courses</h3>
+                        <div class="space-y-4">
+                            <!-- Course 1 -->
+                            <div class="flex items-start p-4 bg-gray-50 rounded-lg hover:shadow-sm transition-all">
+                                <span class="flex-shrink-0 flex items-center justify-center w-12 h-12 bg-indigo-100 text-indigo-600 rounded-lg mr-4">
+                                    <ion-icon name="laptop-outline" class="w-7 h-7"></ion-icon>
+                                </span>
+                                <div>
+                                    <p class="font-semibold text-indigo-700">CS101: Introduction to Computer Science</p>
+                                    <p class="text-sm text-gray-600">Next Deadline: Assessment 2 (Nov 10)</p>
+                                </div>
+                            </div>
+                            <!-- Course 2 -->
+                            <div class="flex items-start p-4 bg-gray-50 rounded-lg hover:shadow-sm transition-all">
+                                <span class="flex-shrink-0 flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-lg mr-4">
+                                    <ion-icon name="book-outline" class="w-7 h-7"></ion-icon>
+                                </span>
+                                <div>
+                                    <p class="font-semibold text-green-700">CS340: Machine Learning</p>
+                                    <p class="text-sm text-gray-600">No upcoming deadlines.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Assessments -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Upcoming Assessments</h3>
+                        <ul class="space-y-4">
+                            <li class="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+                                <p class="font-medium text-yellow-800">CS101 - Assessment 2</p>
+                                <p class="text-sm text-yellow-700 mb-2">Due: Nov 10, 2025</p>
+                                <button class="w-full text-sm bg-yellow-600 text-white px-3 py-2 rounded-lg hover:bg-yellow-700" data-goto-page="page-assessment-start">
+                                    Start Assessment
+                                </button>
+                            </li>
+                            <li class="p-4 border border-gray-200 bg-gray-50 rounded-lg">
+                                <p class="font-medium text-gray-800">CS340 - Midterm Assessment</p>
+                                <p class="text-sm text-gray-600 mb-2">Due: Nov 15, 2025</p>
+                                <button class="w-full text-sm bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700" data-goto-page="page-assessment-start">
+                                    Start Assessment
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 2. Trang My Progress & Feedback (ĐÃ CẬP NHẬT) === -->
+            <div id="page-progress" class="page-content">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">My Progress & Feedback</h2>
+
+                <!-- Tabs (Chỉ có 1 tab như yêu cầu) -->
+                <div class="mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex -mb-px space-x-6" aria-label="Tabs">
+                            <a href="#" class="active border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                By Course's Assessments
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Cấu trúc mới: Các phần tiến độ theo từng khóa học -->
+                <div class="space-y-8">
+                    
+                    <!-- === KHÓA HỌC 1: CS101 === -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">CS101: Introduction to Computer Science</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Pie Chart cho CS101 -->
+                            <div class="lg:col-span-1">
+                                <h4 class="text-xl font-semibold mb-4 text-gray-800 text-center">CS101 Progress</h4>
+                                <div class="flex justify-center items-center my-4">
+                                    <!-- CSS Pie Chart (50%) -->
+                                    <div class="pie" style="--p:50; --c: #4f46e5;">50%</div>
+                                </div>
+                                <p class="text-center text-gray-600">You have completed 1 out of 2 assessments.</p>
+                            </div>
+                            
+                            <!-- Assessment Report cho CS101 -->
+                            <div class="lg:col-span-2">
+                                <h4 class="text-xl font-semibold mb-4 text-gray-800">Assessment Report (CS101)</h4>
+                                <div class="space-y-4">
+                                    <!-- Report 1 (CS101) -->
+                                    <div class="p-4 border rounded-lg bg-green-50 border-green-200">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-semibold text-green-700">Assessment 1 (CS101)</p>
+                                                <p class="text-sm text-gray-600">Completed: Nov 3, 2025 | Score: <span class="font-bold">9/10</span></p>
+                                            </div>
+                                            <button class="text-sm text-indigo-600 hover:underline" data-toggle-details="report-1">View Details</button>
+                                        </div>
+                                        <!-- Expanded Details -->
+                                        <div id="report-1" class="details-row hidden mt-4 pt-4 border-t border-green-200">
+                                            <h5 class="font-semibold mb-2 text-gray-800">Review:</h5>
+                                            <ul class="space-y-2 text-sm">
+                                                <li class="p-2 bg-green-100 rounded">
+                                                    <p>Q1: [Question...] - <span class="font-medium text-green-700">Correct</span></p>
+                                                </li>
+                                                <li class="p-2 bg-red-100 rounded">
+                                                    <p>Q2: Which is NOT a sorting algorithm?</p>
+                                                    <p class="mt-1"><strong>Your Answer (Incorrect):</strong> B) Bubble Sort</p>
+                                                    <p class="mt-1"><strong>Correct Answer:</strong> D) K-Means</p>
+                                                </li>
+                                            </ul>
+                                            <h5 class="font-semibold mt-4 mb-2 text-gray-800">Remedial Recommendations:</h5>
+                                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                                                <p>You missed Q2. We recommend reviewing the 'Algorithms vs Clustering' section from Week 1's slides.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Report 2 (CS101) -->
+                                    <div class="p-4 border rounded-lg bg-gray-50 border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-semibold text-gray-700">Assessment 2 (CS101)</p>
+                                                <p class="text-sm text-red-600">Status: Incomplete</p>
+                                            </div>
+                                            <button class="text-sm bg-yellow-600 text-white px-3 py-1 rounded-lg hover:bg-yellow-700" data-goto-page="page-assessment-start">
+                                                Start Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- === KHÓA HỌC 2: CS340 === -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">CS340: Machine Learning</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Pie Chart cho CS340 -->
+                            <div class="lg:col-span-1">
+                                <h4 class="text-xl font-semibold mb-4 text-gray-800 text-center">CS340 Progress</h4>
+                                <div class="flex justify-center items-center my-4">
+                                    <!-- CSS Pie Chart (0%) -->
+                                    <div class="pie" style="--p:0; --c: #10b981;">0%</div> <!-- 10b981 = green-500 -->
+                                </div>
+                                <p class="text-center text-gray-600">You have completed 0 out of 1 assessment.</p>
+                            </div>
+                            
+                            <!-- Assessment Report cho CS340 -->
+                            <div class="lg:col-span-2">
+                                <h4 class="text-xl font-semibold mb-4 text-gray-800">Assessment Report (CS340)</h4>
+                                <div class="space-y-4">
+                                    <!-- Report 1 (CS340) -->
+                                    <div class="p-4 border rounded-lg bg-gray-50 border-gray-200">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-semibold text-gray-700">Midterm Assessment (CS340)</p>
+                                                <p class="text-sm text-red-600">Status: Incomplete</p>
+                                            </div>
+                                            <button class="text-sm bg-yellow-600 text-white px-3 py-1 rounded-lg hover:bg-yellow-700" data-goto-page="page-assessment-start">
+                                                Start Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- === 3. Trang Recommendation (ĐÃ CẬP NHẬT) === -->
+            <div id="page-recommendation" class="page-content">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Recommendation</h2>
+                <p class="text-gray-600 mb-6">Based on your recent assessment performance, here are some topics we recommend you review.</p>
+                
+                <div class="space-y-6">
+                    <!-- Recommendations cho CS101 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">CS101: Introduction to Computer Science</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <ion-icon name="information-circle-outline" class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0 mt-1"></ion-icon>
+                                <div>
+                                    <p class="font-semibold text-blue-800">Topic: Sorting Algorithms</p>
+                                    <p class="text-sm text-blue-700">You seemed to confuse sorting algorithms with clustering algorithms. We recommend reviewing Week 1's slides and the supplementary PDF on "Algorithm Basics".</p>
+                                </div>
+                            </div>
+                             <div class="flex items-start p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <ion-icon name="information-circle-outline" class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0 mt-1"></ion-icon>
+                                <div>
+                                    <p class="font-semibold text-blue-800">Topic: Variables and Data Types</p>
+                                    <p class="text-sm text-blue-700">Your answer on 'Integer' vs 'String' was incomplete. Try the practice quiz for Chapter 2.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations cho CS340 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">CS340: Machine Learning</h3>
+                        <p class="text-gray-500">No recommendations yet. Complete an assessment to get started!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 4. Trang Assessment Start === -->
+            <div id="page-assessment-start" class="page-content">
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <button class="nav-link text-sm text-indigo-600 hover:underline mb-4" data-page="page-dashboard">&lt; Back to Dashboard</button>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">CS101 - Assessment 2</h2>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Instructions</h3>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-600 mb-6">
+                        <li>This assessment is timed. You cannot pause once you begin.</li>
+                        <li>You will have <strong>15 minutes</strong> to answer <strong>10 questions</strong>.</li>
+                        <li>Your answers will be submitted automatically when time runs out.</li>
+                        <li>Click "Begin Assessment" when you are ready.</li>
+                    </ul>
+                    <button class="w-full text-lg bg-green-600 text-white px-5 py-3 rounded-lg shadow-md hover:bg-green-700 transition-all" data-goto-page="page-assessment-take">
+                        Begin Assessment
+                    </button>
+                </div>
+            </div>
+
+            <!-- === 5. Trang Assessment Interface (Làm bài) === -->
+            <div id="page-assessment-take" class="page-content">
+                <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center border-b pb-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">CS101 - Assessment 2</h2>
+                        <div class="text-lg font-semibold bg-red-100 text-red-700 px-4 py-2 rounded-lg">
+                            <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                            Time: <span id="timer">14:59</span>
+                        </div>
+                    </div>
+
+                    <!-- Question Area -->
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Question 1 of 10</p>
+                        <p class="text-lg font-semibold text-gray-800 mb-4">Which of the following is a sorting algorithm?</p>
+                        
+                        <!-- Answer Area -->
+                        <div class="space-y-3">
+                            <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="answer" class="w-5 h-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">A) K-Means</span>
+                            </label>
+                            <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="answer" class="w-5 h-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">B) Bubble Sort</span>
+                            </label>
+                            <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="answer" class="w-5 h-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">C) Linear Regression</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-end mt-8">
+                        <button class="text-lg bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition-all">
+                            Next Question
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 6. Trang AI Companion (MỚI TỪ MODAL) === -->
+            <div id="page-ai-companion" class="page-content">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">AI Knowledge Companion</h2>
+                
+                <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Select Course Context</label>
+                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            <option>CS101: Introduction to Computer Science</option>
+                            <option>CS340: Machine Learning</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Chat Window -->
+                    <div class="h-96 overflow-y-auto bg-gray-100 p-3 rounded-md border space-y-3 mb-4">
+                        <!-- AI Greeting -->
+                        <div class="flex">
+                            <div class="bg-indigo-100 text-indigo-800 p-3 rounded-lg max-w-xs">
+                                <p class="text-sm">Hi! How can I help you with your courses today?</p>
+                            </div>
+                        </div>
+                        <!-- Student Question (Example) -->
+                        <div class="flex justify-end">
+                            <div class="bg-blue-600 text-white p-3 rounded-lg max-w-xs">
+                                <p class="text-sm">Can you explain Bubble Sort?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clear Chat History Button (Vị trí mới) -->
+                    <div class="flex justify-end mb-4">
+                        <button class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 text-sm font-medium">
+                            Clear Chat History
+                        </button>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div class="flex space-x-2">
+                        <input type="text" placeholder="Ask a question about your course..." class="flex-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700">
+                            <ion-icon name="send-outline" class="w-5 h-5"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- === AI Companion (ĐÃ BỊ XÓA KHỎI ĐÂY) === -->
+    <!-- Nút bấm nổi và Modal đã được gỡ bỏ -->
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            /* === ĐÃ XÓA initModals() === */
+
+            // --- HÀM: Xử lý bật/tắt "View Details" ---
+            function initToggleDetails() {
+                const toggleButtons = document.querySelectorAll('[data-toggle-details]');
+                toggleButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetId = button.getAttribute('data-toggle-details');
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            targetElement.classList.toggle('hidden');
+                            // Thay đổi text của nút
+                            if (targetElement.classList.contains('hidden')) {
+                                button.textContent = 'View Details';
+                            } else {
+                                button.textContent = 'Hide Details';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // --- HÀM: Xử lý chuyển trang chính ---
+            function showPage(pageId) {
+                // Ẩn tất cả các trang
+                document.querySelectorAll('main > .page-content').forEach(page => {
+                    page.classList.remove('active');
+                    page.style.display = 'none';
+                });
+                // Bỏ active tất cả link
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+
+                // Hiển thị trang được yêu cầu
+                const pageToShow = document.getElementById(pageId);
+                if (pageToShow) {
+                    pageToShow.classList.add('active');
+                    pageToShow.style.display = 'block';
+                }
+
+                // Active link tương ứng (nếu có)
+                const activeLink = document.querySelector(`.nav-link[data-page="${pageId}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            // Gán sự kiện click cho các link điều hướng (Sidebar)
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    showPage(pageId);
+                });
+            });
+
+            // Gán sự kiện click cho các nút chuyển trang (ví dụ: Start Assessment)
+            document.querySelectorAll('[data-goto-page]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-goto-page');
+                    showPage(pageId);
+                });
+            });
+
+
+            // Hiển thị trang dashboard mặc định khi tải
+            showPage('page-dashboard');
+
+            // --- KHỞI TẠO ---
+            /* initModals(); // Đã xóa */
+            initToggleDetails(); // Khởi tạo nút View Details
+        });
+    </script>
+
+</body>
+</html>
